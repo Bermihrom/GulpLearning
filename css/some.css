@@ -1,0 +1,9 @@
+h1{
+    color: chocolate;
+}
+h1:hover{
+    color: darkkhaki;
+}
+body{
+    display: flex;
+}
