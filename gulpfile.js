@@ -14,28 +14,34 @@ import cleanerCss from 'gulp-clean-css';
 import uglify from 'gulp-uglify';
 import browserSync from 'browser-sync';
 import del from 'del';
+import sourcemaps from 'gulp-sourcemaps';
+import gulpIf from 'gulp-if';
 
 
+let isDev = process.argv.includes('--dev');
+let isProd = !isDev;
 
 
 
 
 const cssFiles = [
-    './css/some.css',
-    './css/gulp.css'
+    './src/css/some.css',
+    './src/css/gulp.css'
 ]
 const jsFiles = [
-    './js/lib.js',
-    './js/some.js'
+    './src/js/lib.js',
+    './src/js/some.js'
 ]
 
 function styles (){
     return gulp.src(cssFiles)
+        .pipe(sourcemaps.init())
         .pipe(concat('all.css'))
 		.pipe(prefixer())
-        .pipe(cleanerCss({
+        .pipe(gulpIf(isProd, cleanerCss({
             level: 2
-        }))
+        })))
+        .pipe(sourcemaps.write())
         .pipe(gulp.dest('./build/css'))
         .pipe(browserSync.stream());
     
@@ -56,9 +62,9 @@ function watch(){
             baseDir: "./"
         }
     });
-    gulp.watch("./css/**/*.css", styles)
-    gulp.watch("./js/**/*.js", scripts)
-    gulp.watch('./*.html', browserSync.reload);
+    gulp.watch("./src/css/**/*.css", styles)
+    gulp.watch("./src/js/**/*.js", scripts)
+    gulp.watch('./src/*.html', browserSync.reload);
 }
 function clean(){
    return del(['build/*']);
