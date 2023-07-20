@@ -16,6 +16,7 @@ import browserSync from 'browser-sync';
 import del from 'del';
 import sourcemaps from 'gulp-sourcemaps';
 import gulpIf from 'gulp-if';
+import less from 'gulp-less';
 
 
 let isDev = process.argv.includes('--dev');
@@ -24,53 +25,57 @@ let isProd = !isDev;
 
 
 
-const cssFiles = [
-    './src/css/some.css',
-    './src/css/gulp.css'
-]
 const jsFiles = [
     './src/js/lib.js',
     './src/js/some.js'
 ]
 
 function styles (){
-    return gulp.src(cssFiles)
+    return gulp.src('./src/css/main.less')
         .pipe(sourcemaps.init())
-        .pipe(concat('all.css'))
+        .pipe(less())
 		.pipe(prefixer())
         .pipe(gulpIf(isProd, cleanerCss({
             level: 2
         })))
         .pipe(sourcemaps.write())
-        .pipe(gulp.dest('./build/css'))
+        .pipe(gulp.dest('./docs/css'))
         .pipe(browserSync.stream());
     
 }
+
 function scripts (){
     return gulp.src(jsFiles)
-    // pipe
         .pipe(concat('all.js'))
         .pipe(uglify({
             toplevel: true
         }))
-        .pipe(gulp.dest('./build/js'))
+        .pipe(gulp.dest('./docs/js'))
         .pipe(browserSync.stream());
 }
+
 function watch(){
     browserSync.init({
         server: {
-            baseDir: "./"
+            baseDir: "./docs"
         }
     });
     gulp.watch("./src/css/**/*.css", styles)
     gulp.watch("./src/js/**/*.js", scripts)
     gulp.watch('./src/*.html', browserSync.reload);
 }
-function clean(){
-   return del(['build/*']);
+
+function html(){
+    return gulp.src('./src/index.html')
+     .pipe(gulp.dest('./docs'))
 }
-// gulp.task('styles', styles);
-// gulp.task('scripts', scripts);
+
+function clean(){
+   return del(['docs/*']);
+}
+
 gulp.task('watch', watch);
-gulp.task('build', gulp.parallel(styles, scripts));
 gulp.task('clean', clean);
+
+gulp.task('build', gulp.parallel(styles, scripts, html));
+gulp.task('main', gulp.series(clean,  gulp.parallel(html, styles, scripts), watch));
